@@ -116,6 +116,9 @@ std::string GUI::normalize(const T &value) {
 }
 
 void GUI::addFromEntry() {
+    if (taskEntry.get_text().empty())
+        return;
+
     Task *task = addRow();
     std::string normalized = GUI::normalize(taskEntry.get_text());
     taskEntry.set_text("");
