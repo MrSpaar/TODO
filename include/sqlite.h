@@ -100,20 +100,26 @@ public:
         size_t pos = 0;
         std::string normalized = value;
 
-        while ((pos = normalized.find('\'', pos)) != std::string::npos) {
-            normalized.replace(pos, 1, "&apos;");
-            pos += 6;
-        }
-
         pos = 0;
         while ((pos = normalized.find('&', pos)) != std::string::npos) {
             normalized.replace(pos, 1, "&amp;");
             pos += 5;
         }
 
+        while ((pos = normalized.find('\'', pos)) != std::string::npos) {
+            normalized.replace(pos, 1, "&apos;");
+            pos += 6;
+        }
+
         pos = 0;
         while ((pos = normalized.find('"', pos)) != std::string::npos) {
             normalized.replace(pos, 1, "&quot;");
+            pos += 6;
+        }
+
+        pos = 0;
+        while ((pos = normalized.find('\\', pos)) != std::string::npos) {
+            normalized.replace(pos, 1, "&bsol;");
             pos += 6;
         }
 
