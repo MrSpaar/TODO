@@ -28,6 +28,7 @@ GUI::GUI() {
             "button { padding: 2.5px 5px; }"
             "button:hover { background-image: image(#f44336); }"
             "button:active { background-image: image(#aa2e25); }"
+            "checkbutton:checked check { background-image: image(#8bc34a); border-color: #618833; }"
     );
 
     mainGrid.attach(taskWindow, 0, 0, 1, 10);
@@ -80,8 +81,12 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
     task->label.set_markup(checked ?
             "<s>" + task->label.get_text() + "</s>" : task->label.get_text()
     );
+    task->label.get_style_context()->add_provider(styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     task->checkButton.set_active(checked);
+    task->checkButton.get_style_context()->add_provider(
+            styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
     task->checkButton.signal_clicked().connect([this, id, task] {
         task->label.set_markup(task->checkButton.get_active() ?
                 "<s>" + task->label.get_text() + "</s>" : task->label.get_text()
@@ -92,7 +97,9 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
     });
 
     task->deleteButton.set_label("⨯");
-    task->deleteButton.get_style_context()->add_provider(styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    task->deleteButton.get_style_context()->add_provider(
+            styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
 
     task->deleteButton.signal_clicked().connect([this, id, task] {
         taskGrid.remove(task->checkButton);
