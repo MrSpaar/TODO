@@ -96,37 +96,6 @@ public:
     }
 
     template<typename T>
-    static std::string normalize(const T &value) {
-        size_t pos = 0;
-        std::string normalized = value;
-
-        pos = 0;
-        while ((pos = normalized.find('&', pos)) != std::string::npos) {
-            normalized.replace(pos, 1, "&amp;");
-            pos += 5;
-        }
-
-        while ((pos = normalized.find('\'', pos)) != std::string::npos) {
-            normalized.replace(pos, 1, "&apos;");
-            pos += 6;
-        }
-
-        pos = 0;
-        while ((pos = normalized.find('"', pos)) != std::string::npos) {
-            normalized.replace(pos, 1, "&quot;");
-            pos += 6;
-        }
-
-        pos = 0;
-        while ((pos = normalized.find('\\', pos)) != std::string::npos) {
-            normalized.replace(pos, 1, "&bsol;");
-            pos += 6;
-        }
-
-        return normalized;
-    }
-
-    template<typename T>
     SQLite &operator<<(const T &value) {
         query.append(value);
         return *this;

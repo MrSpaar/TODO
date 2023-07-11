@@ -52,6 +52,9 @@ private:
 
     void addFromEntry();
     void addTask(const std::string &description, int id, bool checked, Task *task = nullptr);
+
+    template<typename T>
+    static std::string normalize(const T &value);
 };
 
 

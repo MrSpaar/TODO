@@ -91,9 +91,33 @@ void GUI::addTask(const std::string &description, int id, bool checked, Task *ta
 }
 
 
+template<typename T>
+std::string GUI::normalize(const T &value) {
+    size_t pos = 0;
+    std::string normalized = value;
+
+    while ((pos = normalized.find('&', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&amp;");
+        pos += 5;
+    }
+
+    while ((pos = normalized.find('\'', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&apos;");
+        pos += 6;
+    }
+
+    pos = 0;
+    while ((pos = normalized.find('"', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&quot;");
+        pos += 6;
+    }
+
+    return normalized;
+}
+
 void GUI::addFromEntry() {
     Task *task = addRow();
-    std::string normalized = SQLite::normalize(taskEntry.get_text());
+    std::string normalized = GUI::normalize(taskEntry.get_text());
     taskEntry.set_text("");
 
     db << "INSERT INTO todo (description, checked) VALUES (\u0001, \u0001)",
