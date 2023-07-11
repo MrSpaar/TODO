@@ -104,7 +104,7 @@ public:
 
     template<typename T>
     SQLite &operator,(const T &value) {
-        size_t pos = query.find('?');
+        size_t pos = query.find('\u0001');
         query.erase(pos, 1);
 
         if constexpr (std::is_convertible_v<T, std::string>)
@@ -118,6 +118,7 @@ public:
     SQLite &operator,(sqlite::run_t) {
         result.clear();
         char *err_msg = nullptr;
+        std::cout << query << std::endl;
         sqlite3_exec(db, query.c_str(), SQLResult::fetch, (void*) &result, &err_msg);
 
         if (err_msg != nullptr) {

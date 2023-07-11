@@ -63,7 +63,7 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
     int i = (int) tasks.size() - 1;
 
     if (description.empty()) {
-        db << "INSERT INTO todo (description, checked) VALUES (?, ?)",
+        db << "INSERT INTO todo (description, checked) VALUES (\u0001, \u0001)",
                 taskEntry.get_text(), task->checkButton.get_active() ? 1 : 0, sqlite::run;
         db << "SELECT * FROM todo WHERE id = last_insert_rowid()", sqlite::run;
         id = db.get<int>("id");
@@ -92,7 +92,7 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
                 "<s>" + task->label.get_text() + "</s>" : task->label.get_text()
         );
 
-        db << "UPDATE todo SET checked = ? WHERE id = ?",
+        db << "UPDATE todo SET checked = \u0001 WHERE id = \u0001",
                 task->checkButton.get_active() ? 1 : 0, id, sqlite::run;
     });
 
@@ -106,7 +106,7 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
         taskGrid.remove(task->label);
         taskGrid.remove(task->deleteButton);
         taskGrid.show_all_children();
-        db << "DELETE FROM todo WHERE id = ?", id, sqlite::run;
+        db << "DELETE FROM todo WHERE id = \u0001", id, sqlite::run;
     });
 
     if (description.empty()) {
