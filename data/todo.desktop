@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=TODO
-Icon=/home/mrspaar/Projects/TODO/data/icon.png
-Exec=/home/mrspaar/Projects/TODO/cmake-build-release/TODO
+Icon=path/data/icon.png
+Exec=path/cmake-build-release/TODO
 Terminal=false
-Path=/home/mrspaar/Projects/TODO/cmake-build-release/
+Path=path/cmake-build-release/

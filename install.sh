@@ -26,7 +26,7 @@ make -j$(($(nproc) - 2)) . || printf "${RED}Make failed${NC}\n" || exit 1
 
 cd .. || printf "${RED}Could not find root directory${NC}\n" || exit 1
 
-sed -i "s|path|$PWD|g" data/todo.desktop
 cp data/todo.desktop ~/.local/share/applications/todo.desktop || printf "${RED}Could not copy todo.desktop${NC}\n" || exit 1
+sed -i "s|path|$PWD|g" ~/.local/share/applications/todo.desktop || printf "${RED}Could not edit todo.desktop${NC}\n" || exit 1
 
 printf "${GREEN}Installation complete${NC}\n"
