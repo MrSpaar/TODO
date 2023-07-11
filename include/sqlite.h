@@ -42,7 +42,7 @@ public:
 
             throw std::runtime_error("Unsupported type");
         } catch (std::exception &e) {
-            throw std::runtime_error("Could not cast value \"" + data[key] + "\" to type \"" + typeid(T).name() + "\"");
+            throw std::runtime_error("Could not cast value \"" + data[key] + "\" (key: " + key + ") to type \"" + typeid(T).name() + "\"");
         }
     }
 private:

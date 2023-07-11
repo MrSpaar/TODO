@@ -1,5 +1,13 @@
 CREATE TABLE IF NOT EXISTS todo (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT NOT NULL,
-    checked INTEGER NOT NULL CHECK ( checked IN (0, 1) )
-)
+    category_id INTEGER NOT NULL DEFAULT 0 REFERENCES categories(id) ON DELETE CASCADE,
+    checked INTEGER NOT NULL DEFAULT 0 CHECK ( checked IN (0, 1) )
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL
+);
+
+INSERT OR IGNORE INTO categories (id, name) VALUES (0, '');

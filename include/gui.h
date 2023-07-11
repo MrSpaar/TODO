@@ -14,6 +14,7 @@
 #include "gtkmm/window.h"
 #include "gtkmm/checkbutton.h"
 #include "gtkmm/cssprovider.h"
+#include "gtkmm/comboboxtext.h"
 #include "gtkmm/scrolledwindow.h"
 
 
@@ -22,6 +23,7 @@ public:
     int index;
     Gtk::CheckButton checkButton;
     Gtk::Label label;
+    Gtk::ComboBoxText categoryBox;
     Gtk::Button deleteButton;
 
     explicit Task(int size): index(size-1) {};
@@ -38,11 +40,13 @@ private:
 
     Gtk::Grid mainGrid;
     Gtk::Entry taskEntry{};
-    Gtk::Button addButton;
+    Gtk::Button addTaskButton;
+    Gtk::Button addCategoryButton;
 
     Gtk::ScrolledWindow taskWindow;
     Gtk::Grid taskGrid;
     Glib::RefPtr<Gtk::CssProvider> styleProvider;
+    std::vector<std::string> categories;
 
     std::vector<std::unique_ptr<Task>> tasks;
     Task* addRow() {
@@ -51,7 +55,7 @@ private:
     };
 
     void addFromEntry();
-    void addTask(const std::string &description, int id, bool checked, Task *task = nullptr);
+    void addTask(const std::string &description, int id, int category_id, bool checked, Task *task = nullptr);
 
     template<typename T>
     static std::string normalize(const T &value);
