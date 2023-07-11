@@ -1,0 +1,4 @@
+.idea/
+cmake-build-release/
+
+data/todo.db
