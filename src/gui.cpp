@@ -41,9 +41,6 @@ GUI::GUI() {
     mainGrid.set_row_spacing(10);
     mainGrid.set_column_homogeneous(true);
 
-    addButton.signal_clicked().connect([this] { GUI::addTask(); });
-    taskEntry.signal_activate().connect([this] { GUI::addTask(); });
-
     db << "SELECT * FROM todo", sqlite::run;
     for (SQLRow &row : db)
         addTask(
@@ -54,33 +51,17 @@ GUI::GUI() {
 }
 
 
-void GUI::addTask(const std::string &description, int id, bool checked) {
-    if (description.empty() && taskEntry.get_text().empty())
-        return;
+void GUI::addTask(const std::string &description, int id, bool checked, Task *task) {
+    if (!task)
+        task = addRow();
 
-    tasks.emplace_back(std::make_unique<Task>());
-    auto task = tasks.back().get();
-    int i = (int) tasks.size() - 1;
-
-    if (description.empty()) {
-        db << "INSERT INTO todo (description, checked) VALUES (\u0001, \u0001)",
-                taskEntry.get_text(), task->checkButton.get_active() ? 1 : 0, sqlite::run;
-        db << "SELECT * FROM todo WHERE id = last_insert_rowid()", sqlite::run;
-        id = db.get<int>("id");
-    }
-
-    taskGrid.attach(task->checkButton, 0, i, 1, 1);
-    taskGrid.attach(task->label, 1, i, 1, 1);
-    taskGrid.attach(task->deleteButton, 2, i, 1, 1);
+    taskGrid.attach(task->checkButton, 0, task->index, 1, 1);
+    taskGrid.attach(task->label, 1, task->index, 1, 1);
+    taskGrid.attach(task->deleteButton, 2, task->index, 1, 1);
 
     task->label.set_hexpand(true);
     task->label.set_halign(Gtk::ALIGN_START);
-    task->label.set_label(description.empty() ?
-            taskEntry.get_text() : Glib::ustring(description)
-    );
-    task->label.set_markup(checked ?
-            "<s>" + task->label.get_text() + "</s>" : task->label.get_text()
-    );
+    task->label.set_markup(checked ? "<s>"+description+"</s>" : description);
     task->label.get_style_context()->add_provider(styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     task->checkButton.set_active(checked);
@@ -100,7 +81,6 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
     task->deleteButton.get_style_context()->add_provider(
             styleProvider, GTK_STYLE_PROVIDER_PRIORITY_USER
     );
-
     task->deleteButton.signal_clicked().connect([this, id, task] {
         taskGrid.remove(task->checkButton);
         taskGrid.remove(task->label);
@@ -108,11 +88,21 @@ void GUI::addTask(const std::string &description, int id, bool checked) {
         taskGrid.show_all_children();
         db << "DELETE FROM todo WHERE id = \u0001", id, sqlite::run;
     });
+}
 
-    if (description.empty()) {
-        taskEntry.set_text("");
-        show_all_children();
-    }
+
+void GUI::addFromEntry() {
+    Task *task = addRow();
+    std::string normalized = SQLite::normalize(taskEntry.get_text());
+    taskEntry.set_text("");
+
+    db << "INSERT INTO todo (description, checked) VALUES (\u0001, \u0001)",
+            normalized, task->checkButton.get_active(), sqlite::run;
+
+    db << "SELECT * FROM todo WHERE id = last_insert_rowid()", sqlite::run;
+
+    addTask(normalized, db.get<int>("id"), task->checkButton.get_active(), task);
+    show_all_children();
 }
 
 
@@ -121,8 +111,8 @@ GUI& GUI::init() {
     show_all_children();
     taskWindow.show_all_children();
 
-    taskEntry.signal_activate().connect([this] { GUI::addTask(); });
-    addButton.signal_clicked().connect([this] { GUI::addTask(); });
+    taskEntry.signal_activate().connect([this] { GUI::addFromEntry(); });
+    addButton.signal_clicked().connect([this] { GUI::addFromEntry(); });
 
     return *this;
 }

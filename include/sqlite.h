@@ -72,7 +72,6 @@ public:
     void clear() { data.clear(); }
     [[nodiscard]] auto begin() { return data.begin(); }
     [[nodiscard]] auto end() { return data.end(); }
-    [[nodiscard]] bool empty() const { return data.empty(); }
 private:
     std::vector<SQLRow> data;
 };
@@ -97,6 +96,31 @@ public:
     }
 
     template<typename T>
+    static std::string normalize(const T &value) {
+        size_t pos = 0;
+        std::string normalized = value;
+
+        while ((pos = normalized.find('\'', pos)) != std::string::npos) {
+            normalized.replace(pos, 1, "&apos;");
+            pos += 6;
+        }
+
+        pos = 0;
+        while ((pos = normalized.find('&', pos)) != std::string::npos) {
+            normalized.replace(pos, 1, "&amp;");
+            pos += 5;
+        }
+
+        pos = 0;
+        while ((pos = normalized.find('"', pos)) != std::string::npos) {
+            normalized.replace(pos, 1, "&quot;");
+            pos += 6;
+        }
+
+        return normalized;
+    }
+
+    template<typename T>
     SQLite &operator<<(const T &value) {
         query.append(value);
         return *this;
@@ -104,13 +128,13 @@ public:
 
     template<typename T>
     SQLite &operator,(const T &value) {
-        size_t pos = query.find('\u0001');
-        query.erase(pos, 1);
+        size_t placeholder_pos = query.find('\u0001');
+        query.erase(placeholder_pos, 1);
 
         if constexpr (std::is_convertible_v<T, std::string>)
-            query.insert(pos, "'" + value + "'");
+            query.insert(placeholder_pos, "\"" + value + "\"");
         else
-            query.insert(pos, std::to_string(value));
+            query.insert(placeholder_pos, std::to_string(value));
 
         return *this;
     }
@@ -118,7 +142,6 @@ public:
     SQLite &operator,(sqlite::run_t) {
         result.clear();
         char *err_msg = nullptr;
-        std::cout << query << std::endl;
         sqlite3_exec(db, query.c_str(), SQLResult::fetch, (void*) &result, &err_msg);
 
         if (err_msg != nullptr) {
@@ -136,7 +159,6 @@ public:
 
     [[nodiscard]] auto begin() { return result.begin(); }
     [[nodiscard]] auto end() { return result.end(); }
-    [[nodiscard]] bool empty() const { return result.empty(); }
 
     ~SQLite() { sqlite3_close(db); }
 private:

@@ -19,9 +19,12 @@
 
 class Task {
 public:
+    int index;
     Gtk::CheckButton checkButton;
     Gtk::Label label;
     Gtk::Button deleteButton;
+
+    explicit Task(int size): index(size-1) {};
 };
 
 
@@ -42,7 +45,13 @@ private:
     Glib::RefPtr<Gtk::CssProvider> styleProvider;
 
     std::vector<std::unique_ptr<Task>> tasks;
-    void addTask(const std::string &description = "", int id = 0, bool checked = false);
+    Task* addRow() {
+            tasks.emplace_back(std::make_unique<Task>(tasks.size()));
+            return tasks.back().get();
+    };
+
+    void addFromEntry();
+    void addTask(const std::string &description, int id, bool checked, Task *task = nullptr);
 };
 
 
