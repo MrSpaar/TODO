@@ -1,7 +1,8 @@
 [Desktop Entry]
-Type=Application
 Name=TODO
+Type=Application
+StartupNotify=true
+SingleMainWindow=true
 Icon=path/data/icon.png
 Exec=path/cmake-build-release/TODO
-Terminal=false
 Path=path/cmake-build-release/

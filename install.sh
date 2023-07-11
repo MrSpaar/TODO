@@ -29,4 +29,5 @@ cd .. || printf "${RED}Could not find root directory${NC}\n" || exit 1
 cp data/todo.desktop ~/.local/share/applications/todo.desktop || printf "${RED}Could not copy todo.desktop${NC}\n" || exit 1
 sed -i "s|path|$PWD|g" ~/.local/share/applications/todo.desktop || printf "${RED}Could not edit todo.desktop${NC}\n" || exit 1
 
+update-desktop-database ~/.local/share/applications
 printf "${GREEN}Installation complete${NC}\n"
