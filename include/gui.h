@@ -7,6 +7,7 @@
 
 #include "sqlite.h"
 
+#include "gtkmm/box.h"
 #include "gtkmm/grid.h"
 #include "gtkmm/label.h"
 #include "gtkmm/button.h"
@@ -23,7 +24,6 @@ public:
     int index;
     Gtk::CheckButton checkButton;
     Gtk::Label label;
-    Gtk::ComboBoxText categoryBox;
     Gtk::Button deleteButton;
 
     explicit Task(int size): index(size-1) {};
@@ -37,16 +37,16 @@ public:
     static void run();
 private:
     SQLite db;
+    Gtk::Box mainBox;
 
-    Gtk::Grid mainGrid;
+    Gtk::Box inputBox;
     Gtk::Entry taskEntry{};
-    Gtk::Button addTaskButton;
-    Gtk::Button addCategoryButton;
+    Gtk::Button addButton;
 
     Gtk::ScrolledWindow taskWindow;
     Gtk::Grid taskGrid;
-    Glib::RefPtr<Gtk::CssProvider> styleProvider;
-    std::vector<std::string> categories;
+    Glib::RefPtr<Gtk::CssProvider> deleteButtonStyle;
+    Glib::RefPtr<Gtk::CssProvider> addButtonStyle;
 
     std::vector<std::unique_ptr<Task>> tasks;
     Task* addRow() {
@@ -55,10 +55,12 @@ private:
     };
 
     void addFromEntry();
-    void addTask(const std::string &description, int id, int category_id, bool checked, Task *task = nullptr);
+    void addTask(int id, const std::string &description, bool checked, Task *task = nullptr);
 
     template<typename T>
     static std::string normalize(const T &value);
+
+    void terminate() { db, sqlite::run; }
 };
 
 
