@@ -7,8 +7,7 @@
 
 
 GUI::GUI() {
-    db.init("../data/todo.db");
-    db.run_migration("../data/migrations.sql");
+    SQLInit(&conn, "../data/todo.db");
 
     set_title("TODO");
     set_border_width(10);
@@ -49,15 +48,20 @@ GUI::GUI() {
     );
 
     taskEntry.set_placeholder_text("Task or category description");
+    taskEntry.signal_activate().connect([this] { GUI::addFromEntry(); });
+
     addButton.set_label("+");
+    addButton.signal_clicked().connect([this] { GUI::addFromEntry(); });
     addButton.get_style_context()->add_provider(addButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-    db << "SELECT * FROM todo;", sqlite::run;
-    for (SQLRow &row : db)
+    SQLData data;
+    sqlite3_exec(conn, "SELECT * FROM todo;", SQLFetchAll, &data, nullptr);
+
+    for (SQLRow &row: data)
         addTask(
-                row.get<int>("id"),
-                row.get<std::string>("description"),
-                row.get<int>("checked") == 1
+                SQLGet<int>(row, "id"),
+                SQLGet<std::string>(row, "description"),
+                SQLGet<bool>(row, "checked")
         );
 }
 
@@ -84,8 +88,9 @@ void GUI::addTask(int id, const std::string &description, bool checked, Task *ta
                 "<s>" + normalize(task->label.get_text()) + "</s>" : normalize(task->label.get_text())
         );
 
-        db << "UPDATE todo SET checked = \u0001 WHERE id = \u0001;",
-                task->checkButton.get_active() ? 1 : 0, id;
+        std::string sql = "UPDATE todo SET checked = " + std::to_string(task->checkButton.get_active())
+                          + " WHERE id = " + std::to_string(id);
+        sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
     });
 
     task->deleteButton.set_label("⨯");
@@ -93,7 +98,8 @@ void GUI::addTask(int id, const std::string &description, bool checked, Task *ta
             deleteButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER
     );
     task->deleteButton.signal_clicked().connect([this, id, task] {
-        db << "DELETE FROM todo WHERE id = \u0001;", id;
+        std::string sql = "DELETE FROM todo WHERE id = " + std::to_string(id);
+        sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
 
         taskGrid.remove(task->checkButton);
         taskGrid.remove(task->label);
@@ -127,6 +133,7 @@ std::string GUI::normalize(const T &value) {
     return normalized;
 }
 
+
 void GUI::addFromEntry() {
     if (taskEntry.get_text().empty())
         return;
@@ -135,29 +142,17 @@ void GUI::addFromEntry() {
     std::string normalized = GUI::normalize(taskEntry.get_text());
     taskEntry.set_text("");
 
-    db << "INSERT INTO todo (description) VALUES (\u0001);", normalized;
-    db << "SELECT * FROM todo WHERE id = last_insert_rowid();", sqlite::run;
+    std::string sql = "INSERT INTO todo (description) VALUES ('" + normalized + "');";
+    sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
 
-    addTask(db.get<int>("id"), normalized, false, task);
+    SQLRow row;
+    sqlite3_exec(conn, "SELECT last_insert_rowid() AS id;", SQLFetchOne, &row, nullptr);
+
+    addTask(SQLGet<int>(row, "id"), normalized, false, task);
     show_all_children();
 }
 
 
-GUI& GUI::init() {
-    add(mainBox);
-    show_all_children();
-    taskWindow.show_all_children();
-
-    taskEntry.signal_activate().connect([this] { GUI::addFromEntry(); });
-    addButton.signal_clicked().connect([this] { GUI::addFromEntry(); });
-
-    return *this;
-}
-
-
-void GUI::run() {
-    auto app = Gtk::Application::create();
-    GUI gui;
-    app->run(gui.init());
-    gui.terminate();
+GUI::~GUI() {
+    sqlite3_close(conn);
 }

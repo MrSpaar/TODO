@@ -5,18 +5,18 @@
 #ifndef TODO_GUI_H
 #define TODO_GUI_H
 
-#include "sqlite.h"
-
 #include "gtkmm/box.h"
 #include "gtkmm/grid.h"
 #include "gtkmm/label.h"
 #include "gtkmm/button.h"
 #include "gtkmm/entry.h"
-#include "gtkmm/window.h"
 #include "gtkmm/checkbutton.h"
 #include "gtkmm/cssprovider.h"
 #include "gtkmm/comboboxtext.h"
 #include "gtkmm/scrolledwindow.h"
+#include "gtkmm/applicationwindow.h"
+
+#include "sqlite.h"
 
 
 class Task {
@@ -30,13 +30,13 @@ public:
 };
 
 
-class GUI : public Gtk::Window {
+class GUI : public Gtk::ApplicationWindow {
 public:
     GUI();
     GUI& init();
-    static void run();
+    ~GUI() override;
 private:
-    SQLite db;
+    sqlite3* conn = nullptr;
     Gtk::Box mainBox;
 
     Gtk::Box inputBox;
@@ -45,8 +45,8 @@ private:
 
     Gtk::ScrolledWindow taskWindow;
     Gtk::Grid taskGrid;
-    Glib::RefPtr<Gtk::CssProvider> deleteButtonStyle;
     Glib::RefPtr<Gtk::CssProvider> addButtonStyle;
+    Glib::RefPtr<Gtk::CssProvider> deleteButtonStyle;
 
     std::vector<std::unique_ptr<Task>> tasks;
     Task* addRow() {
@@ -59,8 +59,6 @@ private:
 
     template<typename T>
     static std::string normalize(const T &value);
-
-    void terminate() { db, sqlite::run; }
 };
 
 
