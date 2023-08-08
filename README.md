@@ -6,6 +6,7 @@ This is a simple TODO list app built with:
 - C++ 17+
 - SQLite3 (custom wrapper)
 - GTKmm3 (C++ bindings for GTK3)
+- libnotify (for GNOME notifications)
 
 To install the app, simply clone the repo and run `./install.sh`:
 - The program uses the repo's files (easy to update & uninstall)
