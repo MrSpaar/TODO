@@ -2,11 +2,11 @@
 // Created by mrspaar on 7/10/23.
 //
 
-#include <iostream>
 #include "gui.h"
 
 
 GUI::GUI() {
+    notify_init("TODO");
     SQLInit(&conn, "../data/todo.db");
 
     set_title("TODO");
@@ -55,7 +55,7 @@ GUI::GUI() {
     addButton.get_style_context()->add_provider(addButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     SQLData data;
-    sqlite3_exec(conn, "SELECT * FROM todo;", SQLFetchAll, &data, nullptr);
+    SQLExec(conn, "SELECT * FROM todo;", SQLFetchAll, &data, true);
 
     for (SQLRow &row: data)
         addTask(
@@ -90,7 +90,8 @@ void GUI::addTask(int id, const std::string &description, bool checked, Task *ta
 
         std::string sql = "UPDATE todo SET checked = " + std::to_string(task->checkButton.get_active())
                           + " WHERE id = " + std::to_string(id);
-        sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
+
+        SQLExec(conn, sql, nullptr, nullptr);
     });
 
     task->deleteButton.set_label("⨯");
@@ -99,7 +100,7 @@ void GUI::addTask(int id, const std::string &description, bool checked, Task *ta
     );
     task->deleteButton.signal_clicked().connect([this, id, task] {
         std::string sql = "DELETE FROM todo WHERE id = " + std::to_string(id);
-        sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
+        SQLExec(conn, sql, nullptr, nullptr);
 
         taskGrid.remove(task->checkButton);
         taskGrid.remove(task->label);
@@ -143,10 +144,10 @@ void GUI::addFromEntry() {
     taskEntry.set_text("");
 
     std::string sql = "INSERT INTO todo (description) VALUES ('" + normalized + "');";
-    sqlite3_exec(conn, sql.c_str(), nullptr, nullptr, nullptr);
+    SQLExec(conn, sql, nullptr, nullptr);
 
     SQLRow row;
-    sqlite3_exec(conn, "SELECT last_insert_rowid() AS id;", SQLFetchOne, &row, nullptr);
+    SQLExec(conn, "SELECT last_insert_rowid() AS id;", SQLFetchOne, &row);
 
     addTask(SQLGet<int>(row, "id"), normalized, false, task);
     show_all_children();
@@ -155,4 +156,5 @@ void GUI::addFromEntry() {
 
 GUI::~GUI() {
     sqlite3_close(conn);
+    notify_uninit();
 }

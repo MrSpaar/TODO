@@ -5,17 +5,7 @@
 #ifndef TODO_GUI_H
 #define TODO_GUI_H
 
-#include "gtkmm/box.h"
-#include "gtkmm/grid.h"
-#include "gtkmm/label.h"
-#include "gtkmm/button.h"
-#include "gtkmm/entry.h"
-#include "gtkmm/checkbutton.h"
-#include "gtkmm/cssprovider.h"
-#include "gtkmm/comboboxtext.h"
-#include "gtkmm/scrolledwindow.h"
-#include "gtkmm/applicationwindow.h"
-
+#include <gtkmm.h>
 #include "sqlite.h"
 
 

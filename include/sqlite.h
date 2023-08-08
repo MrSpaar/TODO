@@ -8,7 +8,10 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <stdexcept>
 #include <sqlite3.h>
+#include <libnotify/notify.h>
 
 
 typedef std::map<std::string, std::string> SQLRow;
@@ -18,6 +21,7 @@ typedef std::vector<SQLRow> SQLData;
 void SQLInit(sqlite3 **conn, const char *path);
 int SQLFetchAll(void* res, int argc, char **argv, char **colNames);
 int SQLFetchOne(void* res, int argc, char **argv, char **colNames);
+void SQLExec(sqlite3 *conn, const std::string &sql, int (*callback)(void*, int, char**, char**), void *res, bool errorOut = false);
 
 template<typename T>
 T SQLGet(const SQLRow &row, const std::string &colName) {
