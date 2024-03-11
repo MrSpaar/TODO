@@ -1,4 +1,5 @@
 .idea/
 cmake-build-release/
 
+build/
 data/todo.db

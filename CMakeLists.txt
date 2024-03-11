@@ -12,7 +12,7 @@ include_directories(${libnotify_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} src/main.cpp
         include/sqlite.h src/sqlite.cpp
-        include/gui.h src/gui.cpp include/notify.h)
+        include/gui.h src/gui.cpp)
 
 target_link_libraries(${PROJECT_NAME} sqlite3 ${GTKMM_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${libnotify_LIBRARIES})
