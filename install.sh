@@ -23,11 +23,11 @@ else
   exit 1
 fi
 
-if [ ! -d "cmake-build-release" ]; then
-    mkdir cmake-build-release
+if [ ! -d "build" ]; then
+    mkdir build
 fi
 
-cd cmake-build-release || printf "${RED}Could not find cmake-build-release directory${NC}\n" || exit 1
+cd build || printf "${RED}Could not find build directory${NC}\n" || exit 1
 cmake -DCMAKE_BUILD_TYPE=Release .. || printf "${RED}CMake failed${NC}\n" || exit 1
 make -j$(($(nproc) - 2)) . || printf "${RED}Make failed${NC}\n" || exit 1
 

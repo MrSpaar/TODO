@@ -4,5 +4,5 @@ Type=Application
 StartupNotify=true
 SingleMainWindow=true
 Icon=path/data/icon.png
-Exec=path/cmake-build-release/TODO
-Path=path/cmake-build-release/
+Exec=path/build/TODO
+Path=path/build/
