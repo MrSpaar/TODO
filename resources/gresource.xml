@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gresources prefix="/org/todo">
+  <gresource prefix="/org/todo/icons/scalable/actions/">
+    <file
+            preprocess="xml-stripblanks"
+            alias="plus-symbolic.svg"
+        >icons/plus-symbolic.svg</file>
+  </gresource>
+  <gresource prefix="/org/todo/icons/scalable/actions/">
+    <file
+            preprocess="xml-stripblanks"
+            alias="minus-symbolic.svg"
+        >icons/minus-symbolic.svg</file>
+  </gresource>
+</gresources>

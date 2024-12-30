@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=TODO
-Type=Application
-StartupNotify=true
-SingleMainWindow=true
-Icon=path/data/icon.png
-Exec=path/build/TODO
-Path=path/build/

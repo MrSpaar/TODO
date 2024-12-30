@@ -1,27 +1,10 @@
-//
-// Created by mrspaar on 8/6/23.
-//
-
-#include "sqlite.h"
-
-
-void sendNotification(const std::string &title, const std::string &body) {
-    NotifyNotification *notification = notify_notification_new(title.c_str(), body.c_str(), "dialog-error");
-
-    if (notification == nullptr) {
-        std::cerr << "Failed to create notification" << std::endl;
-        return;
-    }
-
-    notify_notification_set_timeout(notification, 3000);
-    notify_notification_show(notification, nullptr);
-    g_object_unref(G_OBJECT(notification));
-}
+#include "includes/sqlite.h"
+#include <iostream>
 
 
 void SQLInit(sqlite3 **conn, const char *path) {
     if (int rc = sqlite3_open(path, conn)) {
-        sendNotification("Error opening database", sqlite3_errstr(rc));
+        std::cerr << "Error opening database: " << sqlite3_errstr(rc) << std::endl;
         exit(1);
     }
 
@@ -33,7 +16,7 @@ void SQLInit(sqlite3 **conn, const char *path) {
                         ");", nullptr, nullptr, &errMsg);
 
     if (errMsg) {
-        sendNotification("Error creating table", errMsg);
+        std::cerr << "Error creating table: " << errMsg << std::endl;
         sqlite3_free(errMsg);
         exit(1);
     }
@@ -72,7 +55,7 @@ void SQLExec(sqlite3 *conn, const std::string &sql, int (*callback)(void*, int, 
     sqlite3_exec(conn, sql.c_str(), callback, res, &errMsg);
 
     if (errMsg) {
-        sendNotification("Error executing task", '"' + sql + "\" " + errMsg);
+        std::cerr << "Error executing task: '" << sql << "' " << errMsg << std::endl;
         sqlite3_free(errMsg);
     }
 

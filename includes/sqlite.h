@@ -1,17 +1,10 @@
-//
-// Created by mrspaar on 8/6/23.
-//
-
-#ifndef TODO_SQLITE_H
-#define TODO_SQLITE_H
+#pragma once
 
 #include <map>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <stdexcept>
 #include <sqlite3.h>
-#include <libnotify/notify.h>
 
 
 typedef std::map<std::string, std::string> SQLRow;
@@ -22,6 +15,7 @@ void SQLInit(sqlite3 **conn, const char *path);
 int SQLFetchAll(void* res, int argc, char **argv, char **colNames);
 int SQLFetchOne(void* res, int argc, char **argv, char **colNames);
 void SQLExec(sqlite3 *conn, const std::string &sql, int (*callback)(void*, int, char**, char**), void *res, bool errorOut = false);
+
 
 template<typename T>
 T SQLGet(const SQLRow &row, const std::string &colName) {
@@ -42,5 +36,26 @@ T SQLGet(const SQLRow &row, const std::string &colName) {
     }
 }
 
+template<typename T>
+std::string normalize(const T &value) {
+    size_t pos = 0;
+    std::string normalized = value;
 
-#endif //TODO_SQLITE_H
+    while ((pos = normalized.find('&', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&amp;");
+        pos += 5;
+    }
+
+    while ((pos = normalized.find('\'', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&apos;");
+        pos += 6;
+    }
+
+    pos = 0;
+    while ((pos = normalized.find('"', pos)) != std::string::npos) {
+        normalized.replace(pos, 1, "&quot;");
+        pos += 6;
+    }
+
+    return normalized;
+}

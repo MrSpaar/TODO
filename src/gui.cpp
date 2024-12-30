@@ -1,137 +1,89 @@
-//
-// Created by mrspaar on 7/10/23.
-//
+#include "includes/gui.h"
+#include "includes/sqlite.h"
 
-#include "gui.h"
+static sqlite3 *conn = nullptr;
+static std::unordered_map<int, std::unique_ptr<Task>> tasks;
 
 
 GUI::GUI() {
-    notify_init("TODO");
-    SQLInit(&conn, "../data/todo.db");
+    SQLInit(&conn, "resources/todo.db");
 
+    set_child(container);
     set_title("TODO");
-    set_border_width(10);
-    set_default_size(300, 400);
     set_resizable(false);
+    set_default_size(300, 400);
 
-    mainBox.set_orientation(Gtk::ORIENTATION_VERTICAL);
-    mainBox.set_spacing(10);
-    mainBox.pack_start(taskWindow, Gtk::PACK_EXPAND_WIDGET);
-    mainBox.pack_start(inputBox, Gtk::PACK_SHRINK);
+    container.attach(taskWindow, 0, 0, 2, 1);
+    container.attach(taskEntry, 0, 1);
+    container.attach(addButton, 1, 1);
+    container.set_margin(10);
+    container.set_row_spacing(10);
+    container.set_column_spacing(5);
 
-    taskWindow.set_size_request(-1, 350);
-    taskWindow.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
-    taskWindow.add(taskGrid);
-
-    taskGrid.set_margin_start(10);
-    taskGrid.set_margin_end(10);
-    taskGrid.set_column_spacing(10);
     taskGrid.set_row_spacing(5);
+    taskGrid.set_column_spacing(10);
+    taskGrid.set_vexpand(true);
+    taskGrid.set_orientation(Gtk::Orientation::VERTICAL);
+    taskWindow.set_child(taskGrid);
 
-    deleteButtonStyle = Gtk::CssProvider::create();
-    deleteButtonStyle->load_from_data(
-            "button { padding: 2.5px 5px; }"
-            "button:hover { background-image: image(#f44336); }"
-            "button:active { background-image: image(#aa2e25); }"
-            "checkbutton:checked check { background-image: image(#8bc34a); border-color: #618833; }"
-    );
-
-    inputBox.pack_start(taskEntry, Gtk::PACK_EXPAND_WIDGET);
-    inputBox.pack_start(addButton, Gtk::PACK_SHRINK);
-    inputBox.set_spacing(10);
-
-    addButtonStyle = Gtk::CssProvider::create();
-    addButtonStyle->load_from_data(
-            "button { padding-left: 10px; padding-right: 10px; }"
-            "button:hover { background-image: image(#618833); }"
-            "button:active { background-image: image(#357a38); }"
-    );
-
+    taskEntry.set_hexpand(true);
     taskEntry.set_placeholder_text("Task or category description");
-    taskEntry.signal_activate().connect([this] { GUI::addFromEntry(); });
+    taskEntry.signal_activate().connect(
+        sigc::mem_fun(*this, &GUI::addFromEntry)
+    );
 
-    addButton.set_label("+");
-    addButton.signal_clicked().connect([this] { GUI::addFromEntry(); });
-    addButton.get_style_context()->add_provider(addButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    addButton.set_image_from_icon_name("plus-symbolic");
+    addButton.signal_clicked().connect(
+        sigc::mem_fun(*this, &GUI::addFromEntry)
+    );
 
     SQLData data;
-    SQLExec(conn, "SELECT * FROM todo;", SQLFetchAll, &data, true);
+    SQLExec(conn, "SELECT * FROM todo ORDER BY id;", SQLFetchAll, &data, true);
 
-    for (SQLRow &row: data)
-        addTask(
-                SQLGet<int>(row, "id"),
-                SQLGet<std::string>(row, "description"),
-                SQLGet<bool>(row, "checked")
+    for (SQLRow &row: data) {
+        int id = SQLGet<int>(row, "id");
+
+        tasks[id] = std::make_unique<Task>(
+            taskGrid, id,
+            SQLGet<std::string>(row, "description"),
+            SQLGet<bool>(row, "checked")
         );
+    }
 }
 
 
-void GUI::addTask(int id, const std::string &description, bool checked, Task *task) {
-    if (!task)
-        task = addRow();
+Task::Task(Gtk::Grid &parent, int id, const std::string &task, bool checked) {
+    this->id = id;
+    this->index = tasks.size();
 
-    taskGrid.attach(task->checkButton, 0, task->index, 1, 1);
-    taskGrid.attach(task->label, 1, task->index, 1, 1);
-    taskGrid.attach(task->deleteButton, 2, task->index, 1, 1);
+    parent.attach(checkButton, 0, id);
+    parent.attach(label, 1, id);
+    parent.attach(deleteButton, 2, id);
 
-    task->label.set_hexpand(true);
-    task->label.set_halign(Gtk::ALIGN_START);
-    task->label.set_markup(checked ? "<s>"+description+"</s>" : description);
-    task->label.get_style_context()->add_provider(deleteButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    label.set_hexpand(true);
+    label.set_halign(Gtk::Align::START);
+    label.set_markup(checked ? "<s>"+task+"</s>" : task);
 
-    task->checkButton.set_active(checked);
-    task->checkButton.get_style_context()->add_provider(
-            deleteButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER
-    );
-    task->checkButton.signal_clicked().connect([this, id, task] {
-        task->label.set_markup(task->checkButton.get_active() ?
-                "<s>" + normalize(task->label.get_text()) + "</s>" : normalize(task->label.get_text())
+    checkButton.set_active(checked);
+    checkButton.signal_toggled().connect([&] {
+        label.set_markup(checkButton.get_active() ?
+                "<s>" + normalize(label.get_text()) + "</s>" : normalize(label.get_text())
         );
 
-        std::string sql = "UPDATE todo SET checked = " + std::to_string(task->checkButton.get_active())
-                          + " WHERE id = " + std::to_string(id);
+        std::string sql = "UPDATE todo SET checked = " + std::to_string(checkButton.get_active())
+                          + " WHERE id = " + std::to_string(this->id);
 
         SQLExec(conn, sql, nullptr, nullptr);
     });
 
-    task->deleteButton.set_label("⨯");
-    task->deleteButton.get_style_context()->add_provider(
-            deleteButtonStyle, GTK_STYLE_PROVIDER_PRIORITY_USER
-    );
-    task->deleteButton.signal_clicked().connect([this, id, task] {
-        std::string sql = "DELETE FROM todo WHERE id = " + std::to_string(id);
+    deleteButton.set_image_from_icon_name("minus-symbolic");
+    deleteButton.signal_clicked().connect([&] {
+        std::string sql = "DELETE FROM todo WHERE id = " + std::to_string(this->id);
         SQLExec(conn, sql, nullptr, nullptr);
 
-        taskGrid.remove(task->checkButton);
-        taskGrid.remove(task->label);
-        taskGrid.remove(task->deleteButton);
-        taskGrid.show_all_children();
+        parent.remove_row(this->id);
+        tasks.erase(this->index);
     });
-}
-
-
-template<typename T>
-std::string GUI::normalize(const T &value) {
-    size_t pos = 0;
-    std::string normalized = value;
-
-    while ((pos = normalized.find('&', pos)) != std::string::npos) {
-        normalized.replace(pos, 1, "&amp;");
-        pos += 5;
-    }
-
-    while ((pos = normalized.find('\'', pos)) != std::string::npos) {
-        normalized.replace(pos, 1, "&apos;");
-        pos += 6;
-    }
-
-    pos = 0;
-    while ((pos = normalized.find('"', pos)) != std::string::npos) {
-        normalized.replace(pos, 1, "&quot;");
-        pos += 6;
-    }
-
-    return normalized;
 }
 
 
@@ -139,22 +91,19 @@ void GUI::addFromEntry() {
     if (taskEntry.get_text().empty())
         return;
 
-    Task *task = addRow();
-    std::string normalized = GUI::normalize(taskEntry.get_text());
-    taskEntry.set_text("");
+    std::string normalized = normalize(taskEntry.get_text());
 
-    std::string sql = "INSERT INTO todo (description) VALUES ('" + normalized + "');";
-    SQLExec(conn, sql, nullptr, nullptr);
+    SQLExec(conn, "INSERT INTO todo (description) VALUES ('" + normalized + "');", nullptr, nullptr);
+    taskEntry.set_text("");
 
     SQLRow row;
     SQLExec(conn, "SELECT last_insert_rowid() AS id;", SQLFetchOne, &row);
 
-    addTask(SQLGet<int>(row, "id"), normalized, false, task);
-    show_all_children();
+    int id = SQLGet<int>(row, "id");
+    tasks[id] = std::make_unique<Task>(taskGrid, id, normalized, false);
 }
 
 
 GUI::~GUI() {
     sqlite3_close(conn);
-    notify_uninit();
 }
