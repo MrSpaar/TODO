@@ -6,7 +6,6 @@ Dependencies:
 - C++17 or above
 - SQLite3
 - GTKmm4
-- libnotify
 
 Building:
 ```bash
