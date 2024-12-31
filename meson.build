@@ -10,10 +10,6 @@ gresource = gnome.compile_resources('gresource', 'resources/gresource.xml', sour
 executable(
   'bin',
   gresource,
-  [
-    'src/main.cpp',
-    'src/gui.cpp',
-    'src/sqlite.cpp',
-  ],
-  dependencies: [dependency('gtkmm-4.0'), dependency('sqlite3')],
+  'src/main.cpp',
+  dependencies: [dependency('gtkmm-4.0'), dependency('nlohmann_json')],
 )

@@ -1,4 +1,4 @@
-#include "includes/gui.h"
+#include "gui.hpp"
 #include <gtkmm/application.h>
 
 

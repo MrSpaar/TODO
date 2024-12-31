@@ -3,9 +3,9 @@
 # Simple TODO list
 
 Dependencies:
-- C++17 or above
-- SQLite3
-- GTKmm4
+- [C++17](https://en.cppreference.com/w/cpp/17) or above
+- [nlohmann_json](https://github.com/nlohmann/json)
+- [gtkmm4](https://gtkmm.gnome.org/fr/download.html)
 
 Building:
 ```bash
